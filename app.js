@@ -1,4 +1,5 @@
 const express = require('express')
+const {PrismaClient} = require('@prisma/client')
 const bodyParser = require('body-parser')
 const userRouter = require('./routers/user.router')
 const resumeRouter = require('./routers/resume.router')
