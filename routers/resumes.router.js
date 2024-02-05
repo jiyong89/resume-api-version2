@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
     });
   }
 
-  const resumes = await prisma.resumes.findMany({
+  const resumes = await prisma.resume.findMany({
     select: {
       resumeId: true,
       title: true,
@@ -40,10 +40,7 @@ router.get('/', async (req, res) => {
       [orderkey]: orderValue.toLowerCase(),
     },
   });
-  //   resumes.forEach((resume) => {
-  //     resume.name = resume.user.name;
-  //     delete resume.user;
-  //   });
+
 
   return res.json({ data: resumes });
 });
@@ -56,7 +53,7 @@ router.get('/:resumesId', async (req, res) => {
       message: 'resumeId는 필수값 입니다.',
     });
   }
-  const resume = await prisma.resumes.findFirst({
+  const resume = await prisma.resume.findFirst({
     where: {
       resumeId: Number(resumeId),
     },

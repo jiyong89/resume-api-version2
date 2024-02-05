@@ -3,11 +3,13 @@ import { PrismaClient } from '@prisma/client';
 import bodyParser from 'body-parser';
 import usersRouter from './routers/users.router.js';
 import resumesRouter from './routers/resumes.router.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(bodyParser.json()); //미들웨어 등록
 
 app.use('/users', usersRouter);

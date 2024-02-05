@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
 
+const prisma = new PrismaClient();
 const jwtvalidate = async (req, res, next) => {
   try {
     const { authorization } = req.cookies;
+
     if (!authorization) {
       throw new Error('인증 정보가 올바르지 않습니다.');
     }
@@ -19,17 +20,19 @@ const jwtvalidate = async (req, res, next) => {
     if (!token.userId) {
       throw new Error('인증 정보가 올바르지 않습니다.');
     }
-
+    const userId = token.userId
     const user = await prisma.user.findFirst({
       where: {
-        userId: token.userId,
+        userId: +userId
       },
     });
+    console.log(user);
+   
     if (!user) {
       throw new Error('인증 정보가 올바르지 않습니다.');
     }
-
-    res.locals.user = user;
+   
+    req.user = user;
     next();
   } catch (err) {
     return res.status(400).json({
@@ -40,3 +43,4 @@ const jwtvalidate = async (req, res, next) => {
 };
 
 export default jwtvalidate;
+

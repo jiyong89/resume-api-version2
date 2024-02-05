@@ -80,33 +80,39 @@ router.post('/sign-in', async (req, res) => {
   const user = await prisma.user.findFirst({
     where: {
       email,
-      // password, 
+    
     },
   });
-  
+
   if (!user) {
     return res
       .status(401)
       .json({ success: false, message: '올바르지 않는 로그인 정보입니다.' });
   }
-  // console.log("user");
-  // 로그인 성공
-  //   const accessToken = jwt.sign({ userId: user.userId }, 'resume@#');
-  //   return res.cookie('authorization', `Bearer ${accessToken}`);
-  // });
+  
   const token = jwt.sign(
     {
       userId: user.userId,
     },
-    'custom-secret-key'
+    'resume@#'
   );
-  return res.cookie('authorization', `Bearer ${token}`);
-}); 
-router.get('/me', jwtvalidate, (req, res) => {
-  const user = res.locals.user;
-  return res.json({
-    email: user.email,
-    name: user.name,
+  res.cookie('authorization', `Bearer ${token}`);
+  return res.status(200).json({ message: '로그인 성공' });
+});
+router.get('/me', jwtvalidate, async (req, res) => {
+  const { userId } = req.user;
+  const user = await prisma.user.findFirst({
+    where: {
+      userId: +userId,
+    },
+    select: {
+      email: true,
+      name: true,
+      userId: true,
+    },
   });
+
+
+  return res.status(200).json({ data: user });
 });
 export default router;
