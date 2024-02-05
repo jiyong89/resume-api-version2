@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 const jwtvalidate = async (req, res, next) => {
   try {
-    const authorization = req.headers.authorization;
+    const { authorization } = req.cookies;
     if (!authorization) {
       throw new Error('인증 정보가 올바르지 않습니다.');
     }
@@ -20,7 +20,7 @@ const jwtvalidate = async (req, res, next) => {
       throw new Error('인증 정보가 올바르지 않습니다.');
     }
 
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         userId: token.userId,
       },

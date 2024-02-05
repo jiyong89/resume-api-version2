@@ -40,7 +40,7 @@ router.post('/sign-up', async (req, res) => {
     });
   }
 
-  const user = await prisma.users.findFirst({
+  const user = await prisma.user.findFirst({
     where: { email },
   });
 
@@ -50,11 +50,10 @@ router.post('/sign-up', async (req, res) => {
       .json({ succes: false, message: '사용할 수 없는 이메일 입니다.' });
   }
 
-  await prisma.users.create({
+  await prisma.user.create({
     data: {
       email,
       password,
-      passwordConfirm,
       name,
     },
   });
@@ -78,24 +77,31 @@ router.post('/sign-in', async (req, res) => {
       .json({ success: false, message: '비밀번호는 필수값입니다.' });
   }
 
-  const user = await prisma.users.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       email,
-      password,
+      // password, 
     },
   });
+  
   if (!user) {
     return res
       .status(401)
       .json({ success: false, message: '올바르지 않는 로그인 정보입니다.' });
   }
+  // console.log("user");
   // 로그인 성공
-  const accessToken = jwt.sign({ userId: user.userId }, 'resume@#', {
-    expiresIn: '12h',
-  });
-  return res.json({ accessToken });
-});
-
+  //   const accessToken = jwt.sign({ userId: user.userId }, 'resume@#');
+  //   return res.cookie('authorization', `Bearer ${accessToken}`);
+  // });
+  const token = jwt.sign(
+    {
+      userId: user.userId,
+    },
+    'custom-secret-key'
+  );
+  return res.cookie('authorization', `Bearer ${token}`);
+}); 
 router.get('/me', jwtvalidate, (req, res) => {
   const user = res.locals.user;
   return res.json({
