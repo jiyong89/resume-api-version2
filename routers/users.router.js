@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import jwtvalidate from '../middleware/jwt-validate.middleware.js';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -67,24 +68,39 @@ router.post('/sign-up', async (req, res) => {
 router.post('/sign-in', async (req, res) => {
   const { email, password } = req.body;
   if (!email) {
-    return res.status(400).json({ success: false, message: '이메일은 필수값입니다.' });
+    return res
+      .status(400)
+      .json({ success: false, message: '이메일은 필수값입니다.' });
   }
   if (!password) {
-    return res.status(400).json({ success: false, message: '비밀번호는 필수값입니다.' });
+    return res
+      .status(400)
+      .json({ success: false, message: '비밀번호는 필수값입니다.' });
   }
 
   const user = await prisma.users.findFirst({
-    where: { 
-        email,
-        password, }
-  })
+    where: {
+      email,
+      password,
+    },
+  });
   if (!user) {
-    return res.status(401).json({ success: false, message: '올바르지 않는 로그인 정보입니다.' })
+    return res
+      .status(401)
+      .json({ success: false, message: '올바르지 않는 로그인 정보입니다.' });
   }
-// 로그인 성공
-  const accessToken = jwt.sign({ userId: user.userId }, 'resume@#', { expiresIn: '12h'})
-  return res.json({accessToken,})
-  
+  // 로그인 성공
+  const accessToken = jwt.sign({ userId: user.userId }, 'resume@#', {
+    expiresIn: '12h',
+  });
+  return res.json({ accessToken });
 });
 
+router.get('/me', jwtvalidate, (req, res) => {
+  const user = res.locals.user;
+  return res.json({
+    email: user.email,
+    name: user.name,
+  });
+});
 export default router;
