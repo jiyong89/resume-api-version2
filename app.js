@@ -1,21 +1,22 @@
-const express = require('express')
-const {PrismaClient} = require('@prisma/client')
-const bodyParser = require('body-parser')
-const userRouter = require('./routers/user.router')
-const resumeRouter = require('./routers/resume.router')
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
+import bodyParser from 'body-parser';
+import usersRouter from './routers/users.router.js';
+import resumesRouter from './routers/resumes.router.js';
 
-const app = express()
-const port = 3306
+const app = express();
+const port = 3000;
 
-app.use(bodyParser.json()) //미들웨어 등록
+app.use(express.json());
+app.use(bodyParser.json()); //미들웨어 등록
 
-app.use('/users', userRouter)
-app.use('/resumes', resumeRouter);
+app.use('/users', usersRouter);
+app.use('/resumes', resumesRouter);
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+  res.send('Hello World!');
+});
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+  console.log(`${port} 포트로 서버가 열렸습니다.`);
+});
