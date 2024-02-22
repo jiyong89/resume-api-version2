@@ -1,79 +1,30 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
-import jwtvalidate from '../middleware/jwt-validate.middleware.js';
-
-const prisma = new PrismaClient();
+import { prisma } from '../modules/index.js';
+import { verificationToken } from "../middlewares/middleware.js";
+import { ResumesController } from '../controllers/resumes.controller.js';
+import { ResumesService } from '../services/resumes.services.js';
+import { ResumesRepository } from '../repositories/resumes.repositories.js';
 
 const router = express.Router();
-
-router.get('/', async (req, res) => {
-  const orderkey = req.query.orderkey ?? 'resumeId';
-  const orderValue = req.query.orderValue ?? 'desc';
-
-  if (!['resumeId', 'status'].includes(orderkey)) {
-    return res.status(400).json({
-      success: false,
-      message: 'orderKey가 올바르지 않습니다.',
-    });
-  }
-  if (!['asc', 'desc'].includes(orderValue.toLowerCase())) {
-    return res.status(400).json({
-      success: false,
-      message: 'orderKey가 올바르지 않습니다.',
-    });
-  }
-
-  const resumes = await prisma.resume.findMany({
-    select: {
-      resumeId: true,
-      title: true,
-      content: true,
-      user: {
-        select: {
-          name: true,
-        },
-      },
-      createdAt: true,
-    },
-    orderBy: {
-      [orderkey]: orderValue.toLowerCase(),
-    },
-  });
+const resumeRepository = new ResumesRepository(prisma);
+const resumeService = new ResumesService(resumeRepository);
+const resumeController = new ResumesController(resumeService);
 
 
-  return res.json({ data: resumes });
-});
 
-router.get('/:resumesId', async (req, res) => {
-  const resumeId = req.params.resumesId;
-  if (!resumeId) {
-    return res.status(400).json({
-      success: false,
-      message: 'resumeId는 필수값 입니다.',
-    });
-  }
-  const resume = await prisma.resume.findFirst({
-    where: {
-      resumeId: Number(resumeId),
-    },
-    select: {
-      resumeId: true,
-      title: true,
-      content: true,
-      status: true,
-      user: {
-        select: {
-          name: true,
-        },
-      },
-      createdAt: true,
-    },
-  });
+// 이력서 생성
+router.post('/', verificationToken, resumeController.createResume);
 
-  if (!resume) {
-    return res.json({ data: {} });
-  }
-  return res.json({ data: resume });
-});
+// 모든 이력서 조회 API
+router.get('/', resumeController.findAllResumes);
+
+// 이력서 상세 조회 API
+router.get('/:resumeId', resumeController.findResume)
+
+// 이력서 수정 API
+router.put('/:resumeId', verificationToken, resumeController.editResume);
+
+// 이력서 삭제 API
+router.delete('/:resumeId', verificationToken, resumeController.deleteResume);
+
 export default router;
